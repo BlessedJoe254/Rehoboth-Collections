@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Energy Meter</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #00f0ff;
+            --secondary-color: #0066ff;
+            --dark-bg: #0a192f;
+            --card-bg: #172a45;
+            --text-light: #ccd6f6;
+            --text-lighter: #e6f1ff;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--text-lighter);
+        }
+        
+        .tech-border {
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+        
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 240, 255, 0.1);
+        }
+        
+        .value-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+        
+        .unit {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+        
+        .status-active {
+            color: #00ff88;
+        }
+        
+        .status-warning {
+            color: #ffcc00;
+        }
+        
+        .status-critical {
+            color: #ff5555;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text-light);
+            border: none;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background: transparent;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .table-tech {
+            background-color: var(--card-bg);
+            color: var(--text-light);
+        }
+        
+        .table-tech th {
+            border-top: none;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .table-tech td {
+            border-top: 1px solid rgba(0, 240, 255, 0.1);
+        }
+        
+        .progress-tech {
+            height: 8px;
+            background-color: rgba(0, 240, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        .progress-tech .progress-bar {
+            background-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+        
+        .glow-effect {
+            position: relative;
+        }
+        
+        .glow-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.3);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body> 
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="d-flex justify-content-between align-items-center py-3 mb-4 border-bottom border-secondary">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-bolt fa-2x me-3" style="color: var(--primary-color);"></i>
+                <h1 class="m-0">SMART ENERGY METER</h1>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-primary me-2">Real-time</span>
+                <span id="current-time" class="text-light"></span>
+            </div>
+        </header>
+
+<!-- Summary Cards - Enhanced Visibility -->
+<div class="row mb-4">
+    <!-- Voltage Card -->
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-card p-3 h-100 glow-effect" style="border-left: 4px solid #00f0ff;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase mb-2" style="color: #a0a8c0; letter-spacing: 1px; font-size: 0.8rem;">VOLTAGE</h6>
+                    <div class="d-flex align-items-baseline">
+                        <span id="voltage-value" class="value-display me-2" style="font-size: 2.2rem; text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);">--</span>
+                        <span class="unit" style="font-size: 1.2rem; color: #ccd6f6;">V</span>
+                    </div>
+                </div>
+                <i class="fas fa-bolt fa-3x" style="color: rgba(0, 240, 255, 0.2);"></i>
+            </div>
+            <div class="mt-3">
+                <div class="progress progress-tech" style="height: 10px;">
+                    <div id="voltage-progress" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #0066ff, #00f0ff);"></div>
+                </div>
+                <small class="text-muted mt-2 d-block">PHASE: 
+                    <span id="phase-status" class="status-active" style="font-weight: 500;">--</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Card -->
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-card p-3 h-100 glow-effect" style="border-left: 4px solid #00ff88;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase mb-2" style="color: #a0a8c0; letter-spacing: 1px; font-size: 0.8rem;">CURRENT</h6>
+                    <div class="d-flex align-items-baseline">
+                        <span id="current-value" class="value-display me-2" style="font-size: 2.2rem; text-shadow: 0 0 12px rgba(0, 255, 136, 0.5);">--</span>
+                        <span class="unit" style="font-size: 1.2rem; color: #ccd6f6;">A</span>
+                    </div>
+                </div>
+                <i class="fas fa-tachometer-alt fa-3x" style="color: rgba(0, 255, 136, 0.2);"></i>
+            </div>
+            <div class="mt-3">
+                <div class="progress progress-tech" style="height: 10px;">
+                    <div id="current-progress" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #00aa66, #00ff88);"></div>
+                </div>
+                <small class="text-muted mt-2 d-block">LOAD: 
+                    <span id="load-status" class="status-active" style="font-weight: 500;">--</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Power Card -->
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-card p-3 h-100 glow-effect" style="border-left: 4px solid #ff5555;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase mb-2" style="color: #a0a8c0; letter-spacing: 1px; font-size: 0.8rem;">POWER</h6>
+                    <div class="d-flex align-items-baseline">
+                        <span id="power-value" class="value-display me-2" style="font-size: 2.2rem; text-shadow: 0 0 12px rgba(255, 85, 85, 0.5);">--</span>
+                        <span class="unit" style="font-size: 1.2rem; color: #ccd6f6;">W</span>
+                    </div>
+                </div>
+                <i class="fas fa-charging-station fa-3x" style="color: rgba(255, 85, 85, 0.2);"></i>
+            </div>
+            <div class="mt-3">
+                <div class="progress progress-tech" style="height: 10px;">
+                    <div id="power-progress" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #ff3355, #ff5555);"></div>
+                </div>
+                <small class="text-muted mt-2 d-block">USAGE: 
+                    <span id="usage-status" class="status-active" style="font-weight: 500;">--</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Energy Card -->
+    <div class="col-md-3 mb-3">
+        <div class="dashboard-card p-3 h-100 glow-effect" style="border-left: 4px solid #ffcc00;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase mb-2" style="color: #a0a8c0; letter-spacing: 1px; font-size: 0.8rem;">ENERGY</h6>
+                    <div class="d-flex align-items-baseline">
+                        <span id="energy-value" class="value-display me-2" style="font-size: 2.2rem; text-shadow: 0 0 12px rgba(255, 204, 0, 0.5);">--</span>
+                        <span class="unit" style="font-size: 1.2rem; color: #ccd6f6;">mWh</span>
+                    </div>
+                </div>
+                <i class="fas fa-battery-three-quarters fa-3x" style="color: rgba(255, 204, 0, 0.2);"></i>
+            </div>
+            <div class="mt-3">
+                <div class="progress progress-tech" style="height: 10px;">
+                    <div id="energy-progress" class="progress-bar" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #ffaa00, #ffcc00);"></div>
+                </div>
+                <small class="text-muted mt-2 d-block">VS AVG: 
+                    <span id="avg-status" class="status-active" style="font-weight: 500;">--</span>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Meter Data Table -->
+            <div class="col-lg-8 mb-4">
+                <div class="dashboard-card p-3 h-100 glow-effect">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="m-0">METER READINGS - MOTOR</h4>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="export-btn">
+                                <i class="fas fa-download me-1"></i> Export
+                            </button>
+                            <div class="btn-group" id="time-range">
+                                <button class="btn btn-sm btn-outline-secondary" data-range="live">Live</button>
+                                <button class="btn btn-sm btn-outline-secondary" data-range="1h">1H</button>
+                                <button class="btn btn-sm btn-outline-secondary active" data-range="24h">24H</button>
+                                <button class="btn btn-sm btn-outline-secondary" data-range="7d">7D</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-tech">
+                            <thead>
+                                <tr>
+                                    <th>Date and Time </th>
+                                    <th>Voltage (V)</th>
+                                    <th>Current (A)</th>
+                                    <th>Power (W)</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="meter-readings">
+                                <!-- Data will be populated by JavaScript -->
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <nav aria-label="Table navigation" class="mt-3">
+                        <ul class="pagination pagination-sm justify-content-end" id="pagination">
+                            <!-- Pagination will be added by JavaScript -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Alerts and Controls -->
+<div class="col-lg-4 mb-4">
+    <div class="dashboard-card p-3 h-100 glow-effect">
+        <ul class="nav nav-tabs" id="alertsTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="alerts-tab" data-bs-toggle="tab" data-bs-target="#alerts" type="button" role="tab">Alerts</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="controls-tab" data-bs-toggle="tab" data-bs-target="#controls" type="button" role="tab">Controls</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content mt-3" id="alertsTabContent">
+            <div class="tab-pane fade show active" id="alerts" role="tabpanel">
+                <div id="alerts-container" class="text-center text-success fw-bold mt-3">
+                    Motor is working properly
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="controls" role="tabpanel">
+                <div class="mb-3">
+                    <label class="form-label">Meter Mode</label>
+                    <select class="form-select bg-dark text-light border-secondary" id="meter-mode">
+                        <option>Normal Operation</option>
+                        <option>Test Mode</option>
+                        <option>Maintenance Mode</option>
+                        <option>Emergency Shutdown</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Data Logging Interval</label>
+                    <select class="form-select bg-dark text-light border-secondary" id="logging-interval">
+                        <option>1 second</option>
+                        <option selected>5 seconds</option>
+                        <option >15 seconds</option>
+                        <option>1 minute</option>
+                        <option>5 minutes</option>
+                    </select>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="remote-control" checked>
+                    <label class="form-check-label" for="remote-control">Enable Remote Control</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="alert-notifications" checked>
+                    <label class="form-check-label" for="alert-notifications">Alert Notifications</label>
+                </div>
+                <button class="btn btn-primary w-100 mt-2" id="save-settings">
+                    <i class="fas fa-save me-1"></i> Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to Handle Alerts -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const alertsContainer = document.getElementById("alerts-container");
+
+        function updateAlert(message, type = "success") {
+            alertsContainer.innerHTML = `<p class="text-center text-${type} fw-bold mt-3">${message}</p>`;
+        }
+
+        // Example usage: If no alerts, show the default message
+        updateAlert("Motor is working properly", "success");
+    });
+</script>
+
+        <!-- Charts Row -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="dashboard-card p-3 h-100 glow-effect">
+                    <h5 class="mb-3">POWER CONSUMPTION TREND OF THE MOTOR</h5>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="powerChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="dashboard-card p-3 h-100 glow-effect">
+                    <h5 class="mb-3">VOLTAGE AND CURRENT TRENDS OF THE MOTOR</h5>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="voltageCurrentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="py-3 text-center text-muted border-top border-secondary">
+            <small>Smart Energy Meter  • Last updated: <span id="last-updated">--</span></small>
+        </footer>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+     
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    
+<script>
+// Configuration with debug info
+const config = {
+    apiBaseUrl: 'server.php',
+    refreshInterval: 5000,
+    maxVoltage: 250,
+    maxCurrent: 20,
+    maxPower: 5,
+    maxEnergy: 30,
+    maxTableRows: 50
+};
+
+console.log('Initializing Smart Meter Dashboard with configuration:', config);
+
+// Debug controller
+const debug = {
+    enabled: true,
+    log: function(message, data = null) {
+        if (this.enabled) {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] DEBUG: ${message}`, data || '');
+        }
+    },
+    error: function(message, error) {
+        const timestamp = new Date().toISOString();
+        console.error(`[${timestamp}] ERROR: ${message}`, {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+    }
+};
+
+// State tracking
+const appState = {
+    currentDataRange: '24h',
+    lastUpdate: null,
+    dataPoints: 0,
+    init: function() {
+        debug.log('Application state initialized', {
+            range: this.currentDataRange,
+            config: config
+        });
+    }
+};
+appState.init();
+
+// DOM elements cache
+const domElements = {
+    voltageValue: document.getElementById("voltage-value"),
+    currentValue: document.getElementById("current-value"),
+    powerValue: document.getElementById("power-value"),
+    energyValue: document.getElementById("energy-value"),
+    voltageProgress: document.getElementById("voltage-progress"),
+    currentProgress: document.getElementById("current-progress"),
+    powerProgress: document.getElementById("power-progress"),
+    energyProgress: document.getElementById("energy-progress"),
+    phaseStatus: document.getElementById("phase-status"),
+    loadStatus: document.getElementById("load-status"),
+    usageStatus: document.getElementById("usage-status"),
+    lastUpdated: document.getElementById("last-updated"),
+    currentTime: document.getElementById("current-time"),
+    meterReadings: document.getElementById("meter-readings")
+};
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    debug.log('DOM content loaded, starting initialization');
+    
+    try {
+        initCharts();
+        setupEventListeners();
+        updateCurrentTime();
+        
+        debug.log('Performing initial data fetch');
+        fetchData();
+        
+        debug.log(`Setting up refresh interval: ${config.refreshInterval}ms`);
+        setInterval(fetchData, config.refreshInterval);
+        
+        debug.log('Initialization complete');
+    } catch (e) {
+        debug.error('Initialization failed', e);
+        updateErrorState('Initialization error');
+    }
+});
+
+// Chart initialization
+function initCharts() {
+    debug.log('Initializing charts...');
+    
+    try {
+        // Power Consumption Chart
+        const powerCtx = document.getElementById('powerChart').getContext('2d');
+        window.powerChart = new Chart(powerCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Power (W)',
+                    data: [],
+                    borderColor: '#00f0ff',
+                    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: getChartOptions('Power Consumption')
+        });
+        
+        // Voltage & Current Chart
+        const vcCtx = document.getElementById('voltageCurrentChart').getContext('2d');
+        window.voltageCurrentChart = new Chart(vcCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Voltage (V)',
+                        data: [],
+                        borderColor: '#0066ff',
+                        backgroundColor: 'rgba(0, 102, 255, 0.1)',
+                        borderWidth: 2,
+                        yAxisID: 'y',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Current (A)',
+                        data: [],
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        borderWidth: 2,
+                        yAxisID: 'y1',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: getChartOptions('Voltage & Current', true)
+        });
+        
+        debug.log('Charts initialized successfully');
+    } catch (e) {
+        debug.error('Chart initialization failed', e);
+        throw e;
+    }
+}
+
+// Data fetching function
+function fetchData() {
+    const fetchStart = performance.now();
+    debug.log(`Starting data fetch (range: ${appState.currentDataRange})`);
+    
+    fetch(`${config.apiBaseUrl}?range=${appState.currentDataRange}`)
+        .then(response => {
+            const fetchTime = performance.now() - fetchStart;
+            debug.log(`Network response received in ${fetchTime.toFixed(2)}ms`, {
+                status: response.status,
+                ok: response.ok,
+                url: response.url
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            debug.log('Data received from server', data);
+            
+            if (!data || typeof data.voltage === 'undefined' || typeof data.current === 'undefined') {
+                throw new Error('Invalid data structure received from server');
+            }
+            
+            appState.lastUpdate = new Date();
+            appState.dataPoints++;
+            updateDashboard(data);
+        })
+        .catch(error => {
+            debug.error('Data fetch failed', error);
+            updateErrorState('Data fetch error');
+        });
+}
+
+// Update meter readings table
+function updateMeterReadingsTable(data) {
+    debug.log('Updating meter readings table', data);
+    
+    try {
+        const tableBody = domElements.meterReadings;
+        
+        // Clear only the loading row if it exists
+        const loadingRow = tableBody.querySelector('tr');
+        if (loadingRow && loadingRow.textContent.includes('Loading')) {
+            tableBody.removeChild(loadingRow);
+        }
+
+        // Create new row
+        const row = document.createElement('tr');
+        
+        // Timestamp cell
+        const timeCell = document.createElement('td');
+        timeCell.textContent = data.timestamp ? 
+            new Date(data.timestamp).toLocaleString() : 
+            new Date().toLocaleString();
+        row.appendChild(timeCell);
+        
+        // Voltage cell
+        const voltageCell = document.createElement('td');
+        voltageCell.textContent = data.voltage.toFixed(1);
+        row.appendChild(voltageCell);
+        
+        // Current cell
+        const currentCell = document.createElement('td');
+        currentCell.textContent = data.current.toFixed(2);
+        row.appendChild(currentCell);
+        
+        // Power cell
+        const powerCell = document.createElement('td');
+        const power = data.voltage * data.current;
+        powerCell.textContent = power.toFixed(2);
+        row.appendChild(powerCell);
+        
+        // Status cell
+        const statusCell = document.createElement('td');
+        const statusSpan = document.createElement('span');
+        
+        if (power > 15) {
+            statusSpan.className = 'status-critical';
+            statusSpan.textContent = 'High';
+        } else if (power > 15) {
+            statusSpan.className = 'status-warning';
+            statusSpan.textContent = 'Ok';
+        } else {
+            statusSpan.className = 'status-active';
+            statusSpan.textContent = 'Normal';
+        }
+        
+        statusCell.appendChild(statusSpan);
+        row.appendChild(statusCell);
+        
+        // Add row to table (prepend to show newest first)
+        tableBody.insertBefore(row, tableBody.firstChild);
+        
+        // Limit to max rows
+        while (tableBody.children.length > config.maxTableRows) {
+            tableBody.removeChild(tableBody.lastChild);
+        }
+        
+        debug.log('Table updated successfully');
+    } catch (e) {
+        debug.error('Failed to update table', e);
+    }
+}
+
+// Dashboard update function
+function updateDashboard(data) {
+    debug.log('Updating dashboard display', data);
+    
+    try {
+        // Validate data
+        const voltage = parseFloat(data.voltage);
+        const current = parseFloat(data.current);
+        
+        if (isNaN(voltage) || isNaN(current)) {
+            throw new Error(`Invalid data values - Voltage: ${data.voltage}, Current: ${data.current}`);
+        }
+        
+        // Calculate derived values
+        const power = voltage * current;
+        const energy = power * 5/3600*1000;
+        
+        // Update display values
+        domElements.voltageValue.textContent = voltage.toFixed(1);
+        domElements.currentValue.textContent = current.toFixed(2);
+        domElements.powerValue.textContent = power.toFixed(2);
+        domElements.energyValue.textContent = energy.toFixed(2);
+        
+        // Update progress bars
+        domElements.voltageProgress.style.width = `${Math.min(100, (voltage / config.maxVoltage) * 100)}%`;
+        domElements.currentProgress.style.width = `${Math.min(100, (current / config.maxCurrent) * 100)}%`;
+        domElements.powerProgress.style.width = `${Math.min(100, (power / config.maxPower) * 100)}%`;
+        domElements.energyProgress.style.width = `${Math.min(100, (energy / config.maxEnergy) * 100)}%`;
+        
+        // Update status indicators
+        updateStatusIndicators(voltage, current, power);
+        
+        // Update timestamps
+        const now = new Date().toLocaleTimeString();
+        domElements.lastUpdated.textContent = now;
+        debug.log(`Last updated time: ${now}`);
+        
+        // Update visual components
+        updateCharts({
+            voltage: voltage,
+            current: current,
+            timestamp: data.timestamp || new Date().toISOString()
+        });
+        
+        updateMeterReadingsTable({
+            voltage: voltage,
+            current: current,
+            timestamp: data.timestamp
+        });
+        
+        debug.log('Dashboard update complete');
+    } catch (e) {
+        debug.error('Dashboard update failed', e);
+        updateErrorState('Data processing error');
+    }
+}
+
+// Update status indicators
+function updateStatusIndicators(voltage, current, power) {
+    debug.log('Updating status indicators', { voltage, current, power });
+    
+    try {
+        // Voltage status
+        let voltageStatus = 'status-active', voltageText = 'Ok';
+        if (voltage < 7.5 || voltage > 13) {
+            voltageStatus = 'status-critical';
+            voltageText = 'Warning';
+        } else if (voltage < 7.5 || voltage <13) {
+            voltageStatus = 'status-warning';
+            voltageText = 'OK';
+        }
+        
+        domElements.phaseStatus.className = voltageStatus;
+        domElements.phaseStatus.textContent = voltageText;
+        
+        // Current status
+        let currentStatus = 'status-active', currentText = 'OK';
+        if (current > 1.5) {
+            currentStatus = 'status-critical';
+            currentText = 'High';
+        } else if (current < 1.5) {
+            currentStatus = 'status-warning';
+            currentText = 'OK';
+        }
+        
+        domElements.loadStatus.className = currentStatus;
+        domElements.loadStatus.textContent = currentText;
+        
+        // Power status
+        let powerStatus = 'status-active', powerText = 'OK';
+        if (power > 15) {
+            powerStatus = 'status-critical';
+            powerText = 'High';
+        } else if (power < 15) {
+            powerStatus = 'status-warning';
+            powerText = 'OK';
+        }
+        
+        domElements.usageStatus.className = powerStatus;
+        domElements.usageStatus.textContent = powerText;
+        
+        debug.log('Status indicators updated', {
+            voltage: { status: voltageStatus, text: voltageText },
+            current: { status: currentStatus, text: currentText },
+            power: { status: powerStatus, text: powerText }
+        });
+    } catch (e) {
+        debug.error('Status indicator update failed', e);
+    }
+}
+
+// Update charts with new data
+function updateCharts(data) {
+    debug.log('Updating charts with new data point', data);
+    
+    try {
+        const timeString = new Date(data.timestamp).toLocaleTimeString();
+        const power = data.voltage * data.current;
+        
+        // Add new data point to power chart
+        powerChart.data.labels.push(timeString);
+        powerChart.data.datasets[0].data.push(power);
+        
+        // Add new data point to voltage/current chart
+        voltageCurrentChart.data.labels.push(timeString);
+        voltageCurrentChart.data.datasets[0].data.push(data.voltage);
+        voltageCurrentChart.data.datasets[1].data.push(data.current);
+        
+        // Limit to 50 data points
+        if (powerChart.data.labels.length > 50) {
+            powerChart.data.labels.shift();
+            powerChart.data.datasets[0].data.shift();
+            voltageCurrentChart.data.labels.shift();
+            voltageCurrentChart.data.datasets[0].data.shift();
+            voltageCurrentChart.data.datasets[1].data.shift();
+            debug.log('Trimmed chart data to maintain 50-point limit');
+        }
+        
+        // Update charts
+        powerChart.update('none'); // 'none' prevents animation for smoother updates
+        voltageCurrentChart.update('none');
+        
+        debug.log('Charts updated successfully', {
+            powerChartPoints: powerChart.data.labels.length,
+            vcChartPoints: voltageCurrentChart.data.labels.length
+        });
+    } catch (e) {
+        debug.error('Chart update failed', e);
+    }
+}
+
+// Current time display
+function updateCurrentTime() {
+    try {
+        const now = new Date().toLocaleString();
+        domElements.currentTime.textContent = now;
+        setTimeout(updateCurrentTime, 1000);
+    } catch (e) {
+        debug.error('Time update failed', e);
+    }
+}
+
+// Error state handling
+function updateErrorState(message = 'Unknown error') {
+    debug.log(`Entering error state: ${message}`);
+    
+    try {
+        // Reset display values
+        domElements.voltageValue.textContent = "--";
+        domElements.currentValue.textContent = "--";
+        domElements.powerValue.textContent = "--";
+        domElements.energyValue.textContent = "--";
+        
+        // Reset progress bars
+        domElements.voltageProgress.style.width = "0%";
+        domElements.currentProgress.style.width = "0%";
+        domElements.powerProgress.style.width = "0%";
+        domElements.energyProgress.style.width = "0%";
+        
+        // Set error status
+        domElements.phaseStatus.className = 'status-critical';
+        domElements.phaseStatus.textContent = 'Error';
+        domElements.loadStatus.className = 'status-critical';
+        domElements.loadStatus.textContent = 'Error';
+        domElements.usageStatus.className = 'status-critical';
+        domElements.usageStatus.textContent = 'Error';
+        
+        // Update last updated time with error indication
+        domElements.lastUpdated.textContent = `${new Date().toLocaleTimeString()} (Error)`;
+        
+        debug.log('Error state fully activated');
+    } catch (e) {
+        console.error('Failed to enter error state:', e);
+    }
+}
+
+// Chart options configuration
+function getChartOptions(title, dualAxis = false) {
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: {
+            duration: 500 // Smoother animations
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#ccd6f6',
+                    font: {
+                        family: "'Orbitron', sans-serif"
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(23, 42, 69, 0.9)',
+                titleFont: {
+                    family: "'Orbitron', sans-serif"
+                },
+                bodyFont: {
+                    family: "'Roboto', sans-serif"
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: !dualAxis,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: '#ccd6f6',
+                    font: {
+                        family: "'Roboto', sans-serif"
+                    }
+                }
+            },
+            x: {
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: '#ccd6f6',
+                    font: {
+                        family: "'Roboto', sans-serif"
+                    }
+                }
+            }
+        }
+    };
+    
+    if (dualAxis) {
+        options.scales.y1 = {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            grid: {
+                drawOnChartArea: false,
+                color: 'rgba(255, 255, 255, 0.1)'
+            },
+            ticks: {
+                color: '#ccd6f6',
+                font: {
+                    family: "'Roboto', sans-serif"
+                }
+            }
+        };
+    }
+    
+    return options;
+}
+
+// Event listeners setup
+function setupEventListeners() {
+    debug.log('Setting up event listeners');
+    
+    try {
+        // Time range buttons
+        document.querySelectorAll('#time-range button').forEach(button => {
+            button.addEventListener('click', function() {
+                const previousRange = appState.currentDataRange;
+                appState.currentDataRange = this.dataset.range;
+                
+                document.querySelector('#time-range .active').classList.remove('active');
+                this.classList.add('active');
+                
+                debug.log(`Data range changed from ${previousRange} to ${appState.currentDataRange}`);
+                fetchData();
+            });
+        });
+        
+        // Export button
+        document.getElementById('export-btn').addEventListener('click', function() {
+            debug.log('Export button clicked');
+            exportData();
+        });
+        
+        // Save settings button
+        document.getElementById('save-settings').addEventListener('click', function() {
+            debug.log('Save settings button clicked');
+            saveSettings();
+        });
+        
+        debug.log('Event listeners setup complete');
+    } catch (e) {
+        debug.error('Event listener setup failed', e);
+    }
+}
+
+// Placeholder functions
+function exportData() {
+    debug.log('Export data function called');
+    alert('Export functionality would be implemented here');
+}
+
+function saveSettings() {
+    debug.log('Save settings function called');
+    alert('Settings saved (would be sent to server in production)');
+}
+    </script>
+    
+</body>
+</html>
+
